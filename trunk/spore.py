@@ -240,7 +240,19 @@ Asset types are: UFO, CREATURE, BUILDING, VEHICLE"""
     url = "%s/rest/assets/search/%s/%i/%i" % (serverString, searchType, start, length)
     if assetType:
         url += "/"+assetType
-    doc = minidom.parse(urllib.urlopen(url))
+    doc = minidom.parseString(urllib.urlopen(url).read().decode("utf-8", "ignore").encode("ascii", "xmlcharrefreplace"))
+    if int(doc.getElementsByTagName("status")[0].firstChild.data) != 1:
+        raise ServerError(doc.getElementsByTagName("status")[0].firstChild.data)
+    assets = []
+    for element in doc.getElementsByTagName("asset"):
+        assets += [Asset()]
+        assets[-1]._getInfoFromNode(element)
+    return assets
+
+def sporecastAssets(sporecastId, start=0, length=20):
+    """Get asset id, and name for assets in a sporecast."""
+    url = "%s/rest/assets/sporecast/%s/%i/%i" % (serverString, sporecastId, start, length)
+    doc = minidom.parseString(urllib.urlopen(url).read().decode("utf-8", "ignore").encode("ascii", "xmlcharrefreplace"))
     if int(doc.getElementsByTagName("status")[0].firstChild.data) != 1:
         raise ServerError(doc.getElementsByTagName("status")[0].firstChild.data)
     assets = []
